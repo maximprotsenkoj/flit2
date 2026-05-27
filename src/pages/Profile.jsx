@@ -129,9 +129,18 @@ export default function Profile({ user, onUpdate }) {
 
           {/* Telegram info */}
           <div style={{ margin:'24px 16px 0', padding:'16px', background:'rgba(31,77,58,0.06)', borderRadius:16, border:'0.5px solid rgba(31,77,58,0.12)' }}>
-            <div style={{ fontSize:12, color:'var(--accent)', fontWeight:600, marginBottom:6 }}>✓ Авторизован через Telegram</div>
-            <div style={{ fontSize:13, color:'var(--ink-2)' }}>Твой аккаунт привязан к Telegram ID. Работодатели могут написать тебе напрямую после мэтча.</div>
-          </div>
+  <div style={{ fontSize:12, color:'var(--accent)', fontWeight:600, marginBottom:6 }}>Debug Telegram</div>
+  <pre style={{ fontSize:11, color:'var(--ink-3)', whiteSpace:'pre-wrap', wordBreak:'break-all' }}>
+    {JSON.stringify({
+      id: user.id,
+      name: user.name,
+      username: user.username,
+      tg_raw: window.Telegram?.WebApp?.initDataUnsafe?.user,
+      platform: window.Telegram?.WebApp?.platform,
+      version: window.Telegram?.WebApp?.version,
+    }, null, 2)}
+  </pre>
+</div>
 
           <button onClick={() => setEditing(true)} style={{
             margin:'16px 16px 0', width:'calc(100% - 32px)',
