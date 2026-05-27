@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { initTelegram, getTelegramUser } from './lib/telegram'
+import { initTelegram, getTelegramUser, getTelegramDebug } from './lib/telegram'
 import { supabase } from './lib/supabase'
 import Onboarding from './pages/Onboarding'
 import Feed from './pages/Feed'
@@ -19,10 +19,10 @@ export default function App() {
   }, [])
 
   async function bootstrap() {
-    const tg = window.Telegram?.WebApp
-    const tgUser = tg?.initDataUnsafe?.user
-    setDebugInfo(`TG ID: ${tgUser?.id || 'нет'} | name: ${tgUser?.first_name || 'нет'}`)
+    const debug = getTelegramDebug()
+    setDebugInfo(JSON.stringify(debug, null, 2))
 
+    const tgUser = getTelegramUser()
     const id = tgUser?.id || 123456
     const name = tgUser ? `${tgUser.first_name} ${tgUser.last_name || ''}`.trim() : 'Test'
     const username = tgUser?.username || ''
@@ -30,12 +30,8 @@ export default function App() {
     try {
       const { data } = await supabase
         .from('users').select('*').eq('id', id).single()
-
-      if (data) {
-        setUser({ ...data, name, username })
-      } else {
-        setUser({ id, name, username, role: null })
-      }
+      if (data) { setUser({ ...data, name, username }) }
+      else { setUser({ id, name, username, role: null }) }
     } catch (e) {
       setUser({ id, name, username, role: null })
     }
@@ -44,11 +40,11 @@ export default function App() {
   }
 
   if (loading) return (
-    <div style={{ height:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:'var(--paper)', padding:24 }}>
-      <div style={{ fontFamily:'Newsreader, Georgia, serif', fontSize:72, fontWeight:300, letterSpacing:'-4px', color:'var(--ink)', lineHeight:0.9 }}>flit.</div>
-      <div style={{ marginTop:24, fontSize:12, color:'var(--ink-3)', textAlign:'center' }}>
+    <div style={{ height:'100vh', background:'var(--paper)', padding:24, overflowY:'auto' }}>
+      <div style={{ fontFamily:'Newsreader, Georgia, serif', fontSize:48, fontWeight:300, color:'var(--ink)' }}>flit.</div>
+      <pre style={{ marginTop:24, fontSize:11, color:'var(--ink-3)', whiteSpace:'pre-wrap', wordBreak:'break-all' }}>
         {debugInfo || 'Загрузка...'}
-      </div>
+      </pre>
     </div>
   )
 

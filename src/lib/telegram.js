@@ -8,24 +8,15 @@ export function initTelegram() {
 
 export function getTelegramUser() {
   const tg = window.Telegram?.WebApp
-  
-  // Пробуем initDataUnsafe
-  if (tg?.initDataUnsafe?.user) {
-    return tg.initDataUnsafe.user
-  }
-  
-  // Пробуем распарсить initData вручную
-  if (tg?.initData) {
-    try {
-      const params = new URLSearchParams(tg.initData)
-      const userStr = params.get('user')
-      if (userStr) {
-        return JSON.parse(decodeURIComponent(userStr))
-      }
-    } catch (e) {
-      console.log('parse error', e)
-    }
-  }
+  return tg?.initDataUnsafe?.user || null
+}
 
-  return null
+export function getTelegramDebug() {
+  const tg = window.Telegram?.WebApp
+  return {
+    version: tg?.version,
+    platform: tg?.platform,
+    initData: tg?.initData?.substring(0, 100),
+    user: tg?.initDataUnsafe?.user,
+  }
 }
