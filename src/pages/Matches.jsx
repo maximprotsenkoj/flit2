@@ -10,31 +10,67 @@ export default function Matches({ user }) {
   async function loadMatches() {
     const { data } = await supabase
       .from('matches')
-      .select('*, vacancies(title, salary_from)')
+      .select('*, vacancies(title, salary_from, company)')
       .or(`candidate_id.eq.${user.id},employer_id.eq.${user.id}`)
     setMatches(data || [])
     setLoading(false)
   }
 
-  if (loading) return <div style={{ padding:24, color:'#888', background:'#0f0f0f', minHeight:'100vh' }}>Загружаем...</div>
+  if (loading) return (
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', background:'var(--paper)' }}>
+      <div style={{ fontFamily:'Newsreader, serif', fontSize:32, color:'var(--ink)' }}>Загрузка...</div>
+    </div>
+  )
 
   return (
-    <div style={{ padding:16, background:'#0f0f0f', minHeight:'100vh' }}>
-      <h2 style={{ color:'#fff', marginBottom:16, fontSize:20 }}>💜 Мэтчи</h2>
-      {matches.length === 0 ? (
-        <div style={{ textAlign:'center', color:'#555', marginTop:80 }}>
-          <div style={{ fontSize:48 }}>👀</div>
-          <p style={{ marginTop:16 }}>Пока мэтчей нет — свайпай!</p>
+    <div style={{ background:'var(--paper)', minHeight:'100vh' }}>
+      <div className="tg-header">
+        <div style={{ width:40 }}/>
+        <div className="tg-title">
+          <div className="tg-title-name">Отклики</div>
+          <div className="tg-title-sub">{matches.length} активных</div>
         </div>
-      ) : matches.map(m => (
-        <div key={m.id} style={{ background:'#1a1a1a', borderRadius:16, padding:20, marginBottom:12, border:'1px solid #6C63FF44' }}>
-          <div style={{ fontWeight:600, color:'#fff' }}>{m.vacancies?.title}</div>
-          <div style={{ color:'#6C63FF', fontSize:14, marginTop:4 }}>
-            {m.vacancies?.salary_from ? `от ${m.vacancies.salary_from.toLocaleString()} ₽` : ''}
+        <div style={{ width:40 }}/>
+      </div>
+
+      <div className="matches__statsRow">
+        <div className="matches__stat">
+          <div className="matches__statNum">{matches.length}</div>
+          <div className="matches__statLabel">всего откликов</div>
+        </div>
+        <div className="matches__statDivider"/>
+        <div className="matches__stat">
+          <div className="matches__statNum matches__statNum--accent">
+            {matches.filter(m => m.status === 'new').length || matches.length}
           </div>
-          <div style={{ color:'#22c55e', fontSize:12, marginTop:8 }}>✓ Мэтч!</div>
+          <div className="matches__statLabel">новых</div>
         </div>
-      ))}
+      </div>
+
+      <div className="matches__list">
+        {matches.length === 0 ? (
+          <div style={{ textAlign:'center', padding:'60px 20px' }}>
+            <div style={{ fontSize:48 }}>👀</div>
+            <div style={{ fontFamily:'Newsreader, serif', fontSize:22, color:'var(--ink)', marginTop:16 }}>Пока мэтчей нет</div>
+            <div style={{ fontSize:14, color:'var(--ink-2)', marginTop:8 }}>Свайпай вакансии — находи своих</div>
+          </div>
+        ) : matches.map(m => (
+          <div key={m.id} className="matches__row">
+            <div className="matches__logo" style={{ background:'var(--accent)', color:'#fff' }}>
+              {m.vacancies?.company?.[0] || '?'}
+            </div>
+            <div className="matches__rowBody">
+              <div className="matches__rowTitle">{m.vacancies?.title}</div>
+              <div className="matches__rowCompany">{m.vacancies?.company}</div>
+              <div className="matches__rowStatus">
+                <span className="matches__statusDot matches__statusDot--success"/>
+                <span>Мэтч! Можно общаться</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{ height:68 }}/>
     </div>
   )
 }

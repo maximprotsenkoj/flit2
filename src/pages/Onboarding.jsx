@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 
-const SKILLS = ['React','Python','Design','Marketing','Sales','HR','Finance','iOS','Android','DevOps']
+const SKILLS = ['React','Python','Design','Marketing','Sales','HR','Finance','iOS','Android','DevOps','Data','Product']
 
 export default function Onboarding({ user, onComplete }) {
   const [step, setStep] = useState(1)
@@ -23,66 +23,61 @@ export default function Onboarding({ user, onComplete }) {
   }
 
   return (
-    <div style={{ minHeight:'100vh', background:'#0f0f0f', padding:24, color:'#fff' }}>
+    <div className="onboard">
       {step === 1 && (
-        <div>
-          <div style={{ fontSize:48, marginBottom:8 }}>⚡</div>
-          <h1 style={{ fontSize:28, fontWeight:700, color:'#6C63FF' }}>Flit</h1>
-          <p style={{ color:'#888', marginBottom:32 }}>Свайпни — и работа найдёт тебя</p>
-          <p style={{ marginBottom:16, fontWeight:600 }}>Ты кто?</p>
-          {['candidate','employer'].map(r => (
-            <button key={r} onClick={() => { setRole(r); setStep(2) }} style={{
-              display:'block', width:'100%', padding:16, marginBottom:12,
-              background:'#1a1a1a', border:'1px solid #2a2a2a',
-              borderRadius:12, color:'#fff', fontSize:16, cursor:'pointer', textAlign:'left'
-            }}>
-              {r === 'candidate' ? '🙋 Ищу работу' : '🏢 Нанимаю людей'}
+        <>
+          <div className="onboard__logo">flit.</div>
+          <div className="onboard__tag">Свайпни — и работа найдёт тебя</div>
+          <div style={{ marginTop: 48 }}>
+            <div className="onboard__label">Ты кто?</div>
+            <button className="onboard__btn" onClick={() => { setRole('candidate'); setStep(2) }}>
+              🙋 Ищу работу
             </button>
-          ))}
-        </div>
+            <button className="onboard__btn" onClick={() => { setRole('employer'); setStep(2) }}>
+              🏢 Нанимаю людей
+            </button>
+          </div>
+        </>
       )}
+
       {step === 2 && (
-        <div>
-          <p style={{ marginBottom:16, fontWeight:600 }}>Твои навыки:</p>
-          <div style={{ display:'flex', flexWrap:'wrap', gap:8, marginBottom:24 }}>
+        <>
+          <div style={{ fontSize: 28, fontWeight: 700, marginBottom: 8 }}>Навыки</div>
+          <div style={{ fontSize: 14, color: 'var(--ink-2)', marginBottom: 24 }}>Выбери что умеешь — подберём вакансии точнее</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 32 }}>
             {SKILLS.map(s => (
-              <button key={s} onClick={() => toggleSkill(s)} style={{
-                padding:'8px 16px', borderRadius:20, border:'1px solid',
-                borderColor: skills.includes(s) ? '#6C63FF' : '#2a2a2a',
-                background: skills.includes(s) ? '#6C63FF22' : '#1a1a1a',
-                color: skills.includes(s) ? '#6C63FF' : '#888', cursor:'pointer'
-              }}>{s}</button>
+              <button key={s} className={'onboard__chip' + (skills.includes(s) ? ' onboard__chip--on' : '')}
+                onClick={() => toggleSkill(s)}>{s}</button>
             ))}
           </div>
-          <button onClick={() => setStep(3)} style={{
-            width:'100%', padding:16, background:'#6C63FF',
-            border:'none', borderRadius:12, color:'#fff', fontSize:16, cursor:'pointer'
-          }}>Далее →</button>
-        </div>
+          <button className="onboard__primary" onClick={() => setStep(3)}>Далее →</button>
+        </>
       )}
+
       {step === 3 && (
-        <div>
-          <p style={{ marginBottom:16, fontWeight:600 }}>Желаемая зарплата (₽/мес):</p>
-          <input value={salary} onChange={e => setSalary(e.target.value)}
-            placeholder="например 150000"
-            style={{ width:'100%', padding:16, background:'#1a1a1a', border:'1px solid #2a2a2a', borderRadius:12, color:'#fff', fontSize:16, marginBottom:24 }}
+        <>
+          <div style={{ fontSize: 28, fontWeight: 700, marginBottom: 8 }}>Зарплата</div>
+          <div style={{ fontSize: 14, color: 'var(--ink-2)', marginBottom: 24 }}>Только вакансии с открытой зарплатой</div>
+          <input className="onboard__input" value={salary}
+            onChange={e => setSalary(e.target.value)}
+            placeholder="от 150 000 ₽"
           />
-          <p style={{ marginBottom:16, fontWeight:600 }}>Формат работы:</p>
-          {['remote','office','hybrid'].map(f => (
-            <button key={f} onClick={() => setFormat(f)} style={{
-              display:'block', width:'100%', padding:14, marginBottom:8,
-              background: format === f ? '#6C63FF22' : '#1a1a1a',
-              border:`1px solid ${format === f ? '#6C63FF' : '#2a2a2a'}`,
-              borderRadius:12, color: format === f ? '#6C63FF' : '#fff', cursor:'pointer'
-            }}>
-              {f === 'remote' ? '🏠 Удалёнка' : f === 'office' ? '🏢 Офис' : '🔀 Гибрид'}
+          <div className="onboard__label" style={{ marginTop: 8 }}>Формат работы</div>
+          {[
+            { id: 'remote', label: '🏠 Удалёнка' },
+            { id: 'hybrid', label: '🔀 Гибрид' },
+            { id: 'office', label: '🏢 Офис' },
+          ].map(f => (
+            <button key={f.id} className="onboard__btn"
+              onClick={() => setFormat(f.id)}
+              style={{ borderColor: format === f.id ? 'var(--accent)' : undefined, color: format === f.id ? 'var(--accent)' : undefined }}>
+              {f.label}
             </button>
           ))}
-          <button onClick={finish} disabled={loading} style={{
-            width:'100%', padding:16, background:'#6C63FF', marginTop:16,
-            border:'none', borderRadius:12, color:'#fff', fontSize:16, cursor:'pointer'
-          }}>{loading ? 'Сохраняем...' : 'Начать ⚡'}</button>
-        </div>
+          <button className="onboard__primary" onClick={finish} disabled={loading}>
+            {loading ? 'Сохраняем...' : 'Начать ⚡'}
+          </button>
+        </>
       )}
     </div>
   )
