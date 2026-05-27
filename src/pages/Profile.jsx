@@ -22,13 +22,14 @@ export default function Profile({ user, onUpdate }) {
       .eq('id', user.id)
       .select()
       .single()
-    if (data) onUpdate(data)
+    if (data) onUpdate({ ...data, name: user.name, username: user.username, photo_url: user.photo_url })
     setEditing(false)
     setLoading(false)
   }
 
   const avatar = user.name?.[0]?.toUpperCase() || '?'
   const formatLabel = { remote:'🏠 Удалёнка', hybrid:'🔀 Гибрид', office:'🏢 Офис' }
+  const photoUrl = window.Telegram?.WebApp?.initDataUnsafe?.user?.photo_url
 
   return (
     <div style={{ background:'var(--paper)', minHeight:'100vh', paddingBottom:80 }}>
@@ -49,13 +50,20 @@ export default function Profile({ user, onUpdate }) {
 
       {/* Hero */}
       <div style={{ padding:'32px 24px 24px', display:'flex', flexDirection:'column', alignItems:'center', textAlign:'center' }}>
+        {photoUrl ? (
+          <img src={photoUrl} alt={user.name}
+            style={{ width:84, height:84, borderRadius:'50%', objectFit:'cover', border:'2px solid var(--line)' }}
+            onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='grid' }}
+          />
+        ) : null}
         <div style={{
           width:84, height:84, borderRadius:'50%',
           background:'var(--ink)', color:'var(--paper)',
-          display:'grid', placeItems:'center',
+          display: photoUrl ? 'none' : 'grid', placeItems:'center',
           fontFamily:'Newsreader, Georgia, serif',
           fontSize:32, letterSpacing:'-1px'
         }}>{avatar}</div>
+
         <div style={{
           marginTop:12, fontFamily:'Newsreader, Georgia, serif',
           fontSize:26, fontWeight:400, letterSpacing:'-0.5px', color:'var(--ink)'
@@ -86,7 +94,7 @@ export default function Profile({ user, onUpdate }) {
       }}>
         {[
           { num: user.salary_from ? `${(user.salary_from/1000).toFixed(0)}к` : '—', label:'зарплата' },
-          { num: skills.length || '0', label:'навыков' },
+          { num: (user.skills?.length || 0), label:'навыков' },
           { num: formatLabel[user.work_format]?.split(' ')[1] || '—', label:'формат' },
         ].map((s, i) => (
           <div key={i} style={{ flex:1, textAlign:'center', borderRight: i < 2 ? '0.5px solid var(--line)' : 'none' }}>
@@ -98,7 +106,6 @@ export default function Profile({ user, onUpdate }) {
 
       {!editing ? (
         <>
-          {/* Info */}
           <div style={{ margin:'20px 16px 0', display:'flex', flexDirection:'column', gap:6 }}>
             {[
               { label:'Зарплата', value: user.salary_from ? `от ${user.salary_from.toLocaleString()} ₽` : 'Не указана' },
@@ -115,7 +122,6 @@ export default function Profile({ user, onUpdate }) {
             ))}
           </div>
 
-          {/* Skills */}
           {user.skills?.length > 0 && (
             <div style={{ margin:'20px 16px 0' }}>
               <div style={{ fontSize:11, letterSpacing:'1.2px', textTransform:'uppercase', color:'var(--ink-3)', marginBottom:10 }}>Навыки</div>
@@ -127,20 +133,10 @@ export default function Profile({ user, onUpdate }) {
             </div>
           )}
 
-          {/* Telegram info */}
           <div style={{ margin:'24px 16px 0', padding:'16px', background:'rgba(31,77,58,0.06)', borderRadius:16, border:'0.5px solid rgba(31,77,58,0.12)' }}>
-  <div style={{ fontSize:12, color:'var(--accent)', fontWeight:600, marginBottom:6 }}>Debug Telegram</div>
-  <pre style={{ fontSize:11, color:'var(--ink-3)', whiteSpace:'pre-wrap', wordBreak:'break-all' }}>
-    {JSON.stringify({
-      id: user.id,
-      name: user.name,
-      username: user.username,
-      tg_raw: window.Telegram?.WebApp?.initDataUnsafe?.user,
-      platform: window.Telegram?.WebApp?.platform,
-      version: window.Telegram?.WebApp?.version,
-    }, null, 2)}
-  </pre>
-</div>
+            <div style={{ fontSize:12, color:'var(--accent)', fontWeight:600, marginBottom:4 }}>✓ Авторизован через Telegram</div>
+            <div style={{ fontSize:13, color:'var(--ink-2)' }}>Работодатели могут написать тебе напрямую после мэтча.</div>
+          </div>
 
           <button onClick={() => setEditing(true)} style={{
             margin:'16px 16px 0', width:'calc(100% - 32px)',
