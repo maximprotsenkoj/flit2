@@ -88,8 +88,41 @@ export default function Feed({ user }) {
   useEffect(() => { loadVacancies() }, [])
 
   async function loadVacancies() {
-    const { data } = await supabase.from('vacancies').select('*').limit(20)
-    setVacancies(data || [])
+    try {
+      // Загружаем с HH через Edge Function
+      const response = await fetch(
+        'https://wyzncseehkfhdylcyzgu.supabase.co/functions/v1/get-vacancies',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify({
+            skills: user.skills || [],
+            salary: user.salary_from || 0,
+            format: user.work_format || '',
+            area: '1',
+          })
+        }
+      )
+  
+      const data = await response.json()
+  
+      if (data.vacancies?.length > 0) {
+        setVacancies(data.vacancies)
+      } else {
+        // Если HH не вернул — берём свои из базы
+        const { data: local } = await supabase.from('vacancies').select('*').limit(20)
+        setVacancies(local || [])
+      }
+    } catch (e) {
+      // При ошибке берём свои
+      const { data: local } = await supabase.from('vacancies').select('*').limit(20)
+      setVacancies(local || [])
+    }
+  
     setLoading(false)
   }
 
