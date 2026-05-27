@@ -19,28 +19,40 @@ export default function App() {
 
   async function bootstrap() {
     const tgUser = getTelegramUser()
-    
-    if (!tgUser) {
-      // Браузер — показываем заглушку
-      setUser({ id: 123456, name: 'Открой в Telegram', username: '', role: null })
-      setLoading(false)
-      return
-    }
-  
-    const id = tgUser.id
-    const name = `${tgUser.first_name} ${tgUser.last_name}`.trim()
-    const username = tgUser.username
-  
-    const { data } = await supabase
-      .from('users').select('*').eq('id', id).single()
-  
-    if (data) {
-      // Обновляем имя и username при каждом входе
-      await supabase.from('users').update({ name, username }).eq('id', id)
-      setUser({ ...data, name, username })
-    } else {
+    const id = tgUser?.id || 123456
+    const name = tgUser ? `${tgUser.first_name} ${tgUser.last_name || ''}`.trim() : 'Test'
+    const username = tgUser?.username || ''
+
+    try {
+      const { data } = await supabase
+        .from('users').select('*').eq('id', id).single()
+
+      if (data) {
+        setUser({ ...data, name, username })
+      } else {
+        setUser({ id, name, username, role: null })
+      }
+    } catch (e) {
       setUser({ id, name, username, role: null })
     }
+
     setLoading(false)
   }
+
+  if (loading) return (
+    <div style={{ height:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:'var(--paper)' }}>
+      <div style={{ fontFamily:'Newsreader, Georgia, serif', fontSize:72, fontWeight:300, letterSpacing:'-4px', color:'var(--ink)', lineHeight:0.9 }}>flit.</div>
+    </div>
+  )
+
+  if (!user?.role) return <Onboarding user={user} onComplete={setUser} />
+
+  return (
+    <div style={{ background:'var(--paper)', minHeight:'100vh' }}>
+      {page === 'feed' && <Feed user={user} />}
+      {page === 'matches' && <Matches user={user} />}
+      {page === 'profile' && <Profile user={user} onUpdate={setUser} />}
+      <Navbar page={page} setPage={setPage} role={user.role} />
+    </div>
+  )
 }
