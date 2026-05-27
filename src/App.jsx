@@ -11,6 +11,7 @@ export default function App() {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState('feed')
+  const [debugInfo, setDebugInfo] = useState('')
 
   useEffect(() => {
     initTelegram()
@@ -18,7 +19,10 @@ export default function App() {
   }, [])
 
   async function bootstrap() {
-    const tgUser = getTelegramUser()
+    const tg = window.Telegram?.WebApp
+    const tgUser = tg?.initDataUnsafe?.user
+    setDebugInfo(`TG ID: ${tgUser?.id || 'нет'} | name: ${tgUser?.first_name || 'нет'}`)
+
     const id = tgUser?.id || 123456
     const name = tgUser ? `${tgUser.first_name} ${tgUser.last_name || ''}`.trim() : 'Test'
     const username = tgUser?.username || ''
@@ -40,8 +44,11 @@ export default function App() {
   }
 
   if (loading) return (
-    <div style={{ height:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:'var(--paper)' }}>
+    <div style={{ height:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:'var(--paper)', padding:24 }}>
       <div style={{ fontFamily:'Newsreader, Georgia, serif', fontSize:72, fontWeight:300, letterSpacing:'-4px', color:'var(--ink)', lineHeight:0.9 }}>flit.</div>
+      <div style={{ marginTop:24, fontSize:12, color:'var(--ink-3)', textAlign:'center' }}>
+        {debugInfo || 'Загрузка...'}
+      </div>
     </div>
   )
 
